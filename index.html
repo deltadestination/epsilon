@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La Palabra del Día: Ciencias Naturales</title>
+<style>
+:root{--ink:#12313a;--green:#14804a;--blue:#0b6fa4;--sky:#dff1fb;--mint:#e6f7ee;--gold:#f2c230;--gray:#5b6770;--line:#9bb4bd;font-family:"Segoe UI","Trebuchet MS",system-ui,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--ink);background:linear-gradient(160deg,var(--mint),var(--sky));font-size:17px;line-height:1.45}
+main{max-width:560px;margin:0 auto;padding:14px 12px 28px}
+header{text-align:center;margin-bottom:8px}
+h1{margin:0;font-size:clamp(1.6rem,6vw,2.2rem);color:var(--blue);letter-spacing:-.5px}
+h1 span{display:inline-block;animation:sway 4s ease-in-out infinite}
+.sub{margin:2px 0 0;color:#2f5560}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.stat{background:#fff;border:2px solid #c5dde6;border-radius:12px;padding:6px 4px;text-align:center;font-size:.85rem}
+.stat b{display:block;font-size:1.15rem;color:var(--green)}
+.badges{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;font-size:.9rem}
+.badge{background:#fff;border:2px solid var(--blue);color:var(--blue);border-radius:99px;padding:2px 12px;font-weight:600}
+#board{display:grid;gap:6px;margin:8px 0}
+.row{display:grid;grid-template-columns:repeat(var(--n),minmax(0,56px));gap:6px;justify-content:center}
+.tile{position:relative;aspect-ratio:1;display:grid;place-items:center;border:2px solid var(--line);border-radius:8px;background:var(--bg,#fff);color:var(--fg,var(--ink));font-weight:800;font-size:clamp(14px,calc(min(100vw,560px)/var(--n)*.55),28px)}
+.tile.filled{border-color:var(--blue);animation:pop .12s}
+.tile[data-s=c]{--bg:#14804a;--fg:#fff;border-color:#14804a}
+.tile[data-s=p]{--bg:#f2c230;--fg:#12313a;border-color:#c99a00}
+.tile[data-s=a]{--bg:#5b6770;--fg:#fff;border-color:#5b6770}
+.tile[data-s]::after{position:absolute;top:1px;right:4px;font-size:.45em;font-weight:700}
+.tile[data-s=c]::after{content:"✓"}.tile[data-s=p]::after{content:"↔"}.tile[data-s=a]::after{content:"✕"}
+.tile.flip{animation:flip .5s both;animation-delay:calc(var(--i)*.22s)}
+.row.shake{animation:shake .4s}
+#msg{min-height:2.6em;text-align:center;font-weight:600;color:var(--blue)}
+.hints{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:4px 0}
+button{font:inherit;cursor:pointer}
+.hbtn{min-height:48px;padding:6px 12px;border-radius:12px;border:2px solid var(--blue);background:#fff;color:var(--blue);font-weight:700}
+.hbtn:disabled{opacity:.5;cursor:not-allowed}
+#hintbox{text-align:center;min-height:1.5em;margin:4px 0 8px;font-size:.95rem}
+#hintbox div{background:#fff;border-radius:10px;padding:3px 10px;margin:3px 0;border:1px dashed var(--blue)}
+#kb{display:grid;gap:6px;margin-top:6px}
+.krow{display:flex;gap:4px;justify-content:center}
+.key{flex:1;max-width:46px;min-height:54px;border:2px solid #b4cbd3;border-radius:8px;background:#fff;color:var(--ink);font-weight:700;padding:0}
+.key.wide{max-width:74px;font-size:.78rem}
+.key[data-s=c]{background:#14804a;color:#fff;border-color:#14804a}
+.key[data-s=p]{background:#f2c230;border-color:#c99a00}
+.key[data-s=a]{background:#5b6770;color:#fff;border-color:#5b6770}
+button:focus-visible{outline:4px solid #ff9f1c;outline-offset:2px}
+.actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.btn{min-height:50px;padding:8px 18px;border-radius:12px;border:0;background:var(--green);color:#fff;font-weight:700}
+.btn.alt{background:#fff;color:var(--blue);border:2px solid var(--blue)}
+.help{font-size:.85rem;color:#2f5560;text-align:center;margin-top:14px}
+#modal{position:fixed;inset:0;background:rgba(10,40,50,.6);display:none;align-items:center;justify-content:center;padding:12px;z-index:10}
+#modal.open{display:flex;animation:fade .25s}
+.card{background:#fff;max-width:520px;width:100%;max-height:92vh;overflow:auto;border-radius:18px;padding:18px;border-top:8px solid var(--green);animation:rise .3s}
+.card h2{margin:0;color:var(--blue);font-size:1.5rem}
+.card h3{margin:12px 0 2px;font-size:1rem;color:var(--green)}
+.card p{margin:0}
+.win{font-weight:700;font-size:1.05rem}
+.opt{display:block;width:100%;text-align:left;margin:6px 0;padding:10px 12px;border-radius:10px;border:2px solid #b4cbd3;background:#fff;color:var(--ink);min-height:48px}
+.opt:hover:not(:disabled){border-color:var(--blue)}
+.opt.ok{background:#d9f3e3;border-color:var(--green)}
+.opt.bad{background:#fde3e0;border-color:#b3261e}
+#qres{font-weight:700;margin-top:6px}
+.who{text-align:center;margin:2px 0 0;font-size:.95rem}
+.link{background:none;border:0;color:var(--blue);text-decoration:underline;min-height:44px;padding:0 6px}
+.inp{width:100%;min-height:52px;font:inherit;padding:8px 12px;border-radius:10px;border:2px solid var(--blue);margin:6px 0 10px}
+.persona{margin:12px 0;padding:10px 12px;border-radius:12px;background:#fff8dc;border:2px dashed #c99a00}
+.persona b{display:block;font-size:1.2rem;color:#7a5b00}
+@keyframes flip{0%{transform:rotateX(0);background:#fff;color:#12313a}49.9%{background:#fff;color:#12313a}50%{transform:rotateX(90deg);background:var(--bg);color:var(--fg)}100%{transform:rotateX(0);background:var(--bg);color:var(--fg)}}
+@keyframes pop{50%{transform:scale(1.1)}}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@keyframes fade{from{opacity:0}}
+@keyframes rise{from{transform:translateY(24px);opacity:0}}
+@keyframes sway{50%{transform:rotate(12deg)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1><span aria-hidden="true">🌱</span> La Palabra del Día <span aria-hidden="true">🔬</span></h1>
+    <p class="sub">Descubre el concepto científico de hoy</p>
+    <p class="who">👤 <b id="whoName"></b> · <button class="link" id="chName">Cambiar nombre</button> · <button class="link" id="mute"></button></p>
+  </header>
+  <section class="stats" aria-label="Estadísticas">
+    <div class="stat"><b id="sStreak">0</b>🔥 Racha científica</div>
+    <div class="stat"><b id="sPts">0</b>⭐ Puntos</div>
+    <div class="stat"><b id="sTry">0/6</b>🎯 Intentos</div>
+  </section>
+  <div class="badges"><span class="badge" id="bCat"></span><span class="badge" id="bLvl"></span><span class="badge" id="bLen"></span></div>
+  <div id="board" aria-label="Tablero de intentos"></div>
+  <div id="msg" role="status" aria-live="polite"></div>
+  <div class="hints">
+    <button class="hbtn" data-h="c">💡 Categoría (−5)</button>
+    <button class="hbtn" data-h="l">💡 Primera letra (−10)</button>
+    <button class="hbtn" data-h="d">💡 Definición parcial (−15)</button>
+  </div>
+  <div id="hintbox" aria-live="polite"></div>
+  <div id="kb" aria-label="Teclado virtual"></div>
+  <div class="actions" id="actions"></div>
+  <p class="help">Escribe con tu teclado o toca las teclas. ✓ verde: letra y lugar correctos · ↔ amarillo: letra en otro lugar · ✕ gris: no está. Las tildes no importan.</p>
+</main>
+
+<div id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle"><div class="card" id="card"></div></div>
+
+<script>
+"use strict";
+/* ============ BANCO DE PALABRAS: palabra|nivel|categoría|definición|dato curioso|ejemplo|reflexión ============ */
+const CATS={B:["🧬","Biología"],H:["🫀","Cuerpo humano"],T:["🌎","La Tierra"],G:["🌋","Geología"],C:["🌤️","Clima y atmósfera"],A:["🐾","Animales"],P:["🌿","Plantas"],W:["💧","Agua y ecosistemas"],M:["⚛️","Materia y energía"],X:["🔬","Ciencia y experimentación"],S:["☀️","Sistema Solar"],E:["♻️","Medio ambiente"]};
+const LVL={1:"Nivel fácil",2:"Nivel medio",3:"Nivel avanzado"};
+const RAW=`Agua|1|W|Líquido transparente, sin olor ni sabor, que es esencial para la vida.|El cuerpo de un adulto tiene cerca de 60 % de agua.|Bebes agua para mantenerte hidratado.|¿Cómo podrías ahorrar agua en tu casa?
+Planta|1|P|Ser vivo que fabrica su propio alimento con la luz del Sol.|Se conocen más de 300 000 especies de plantas.|Un frijol que crece en un vaso con algodón.|¿Qué necesita una planta para crecer sana?
+Sol|1|S|Estrella que da luz y calor a nuestro planeta.|Dentro del Sol cabrían más de un millón de Tierras.|La luz del Sol seca la ropa tendida.|¿Qué pasaría en la Tierra sin la luz del Sol?
+Tierra|1|T|Nuestro planeta; también, el suelo donde crecen las plantas.|Es el único planeta donde sabemos que hay vida.|Plantas una flor en una maceta con tierra.|¿Por qué es importante cuidar el suelo?
+Aire|1|C|Mezcla de gases, sobre todo nitrógeno y oxígeno, que respiramos.|El aire pesa: un globo inflado pesa más que uno vacío.|Sientes el aire cuando sopla el viento.|¿Cómo podemos mantener limpio el aire?
+Luna|1|S|Satélite natural que gira alrededor de la Tierra.|La Luna se aleja de la Tierra unos 4 cm cada año.|Ves la Luna cambiar de forma durante el mes.|¿Por qué vemos distintas fases de la Luna?
+Hueso|1|H|Pieza dura y resistente que forma parte del esqueleto.|Un bebé nace con unos 300 huesos; un adulto tiene 206.|Los huesos de tu pierna te sostienen al caminar.|¿Qué alimentos ayudan a tener huesos fuertes?
+Corazón|1|H|Órgano que bombea la sangre por todo el cuerpo.|Late unas 100 000 veces al día.|Notas que late más rápido cuando corres.|¿Por qué late más fuerte al hacer ejercicio?
+Volcán|1|G|Abertura de la corteza terrestre por donde sale roca fundida.|También hay volcanes bajo el mar.|Una erupción lanza ceniza y lava.|¿Cómo crees que se forma un volcán?
+Lluvia|1|C|Gotas de agua que caen de las nubes.|Una gota de lluvia cae a unos 30 km por hora.|Usas paraguas cuando llueve.|¿De dónde viene el agua que cae como lluvia?
+Abeja|1|A|Insecto que recoge néctar de las flores y produce miel.|Las abejas ayudan a polinizar gran parte de nuestros alimentos.|Una abeja pasa de flor en flor en el jardín.|¿Qué pasaría si desaparecieran las abejas?
+Semilla|1|P|Parte de la planta que guarda un embrión capaz de originar otra planta.|Algunas semillas esperan años antes de germinar.|De una semilla de girasol nace un girasol.|¿Qué necesita una semilla para germinar?
+Célula|2|B|Unidad más pequeña que forma a los seres vivos.|Tu cuerpo tiene billones de células.|Tu piel se renueva con células nuevas.|¿Qué pasaría si las células dejaran de dividirse?
+Ecosistema|2|W|Comunidad de seres vivos que se relacionan entre sí y con su entorno.|Un simple charco también es un ecosistema.|Un bosque con sus árboles, animales y suelo.|¿Cómo afecta a un ecosistema que desaparezca una especie?
+Hábitat|2|B|Lugar donde vive un ser vivo y encuentra lo que necesita.|El pingüino emperador vive en el hielo de la Antártida.|Un pez tiene su hogar en el río.|¿Qué le pasa a un animal si destruyen su hogar natural?
+Energía|2|M|Capacidad de producir movimiento, calor o luz.|La energía no se crea ni se destruye: solo se transforma.|Una lámpara convierte electricidad en luz.|¿Qué fuentes de energía limpia conoces?
+Átomo|2|M|Partícula diminuta que forma toda la materia.|En un punto de esta pantalla hay billones de átomos.|El agua está hecha de átomos de hidrógeno y oxígeno.|¿Por qué no podemos ver los átomos a simple vista?
+Fotosíntesis|2|P|Proceso por el que las plantas usan luz solar, agua y dióxido de carbono para producir su alimento y liberar oxígeno.|Es una de las principales fuentes de oxígeno de nuestro planeta.|Las plantas de un jardín la realizan durante el día.|¿Qué ocurriría con los seres vivos si las plantas dejaran de hacerla?
+Magma|2|G|Roca fundida que se encuentra bajo la superficie terrestre.|Cuando sale a la superficie se llama lava.|La lava de un volcán antes era magma.|¿Qué diferencia hay entre magma y lava?
+Órbita|2|S|Camino que sigue un astro alrededor de otro.|La Tierra tarda 365 días en completar la suya alrededor del Sol.|La Luna recorre la suya alrededor de la Tierra.|¿Qué mantiene a los planetas en su camino?
+Clima|2|C|Comportamiento del tiempo atmosférico de un lugar durante muchos años.|El desierto de Atacama es de los lugares más secos del mundo.|En lugares de clima frío se usa ropa abrigada.|¿Cómo es el clima del lugar donde vives?
+Pulmón|2|H|Órgano que permite respirar y llevar oxígeno a la sangre.|Tiene millones de pequeños sacos llamados alvéolos.|Se llenan de aire cuando inhalas.|¿Por qué el humo hace daño a estos órganos?
+Oxígeno|2|M|Gas del aire que los seres vivos necesitan para respirar.|Las algas y las plantas producen gran parte del que hay en el aire.|Lo respiras todo el día sin darte cuenta.|¿Cómo llega este gas hasta todas las partes de tu cuerpo?
+Reciclar|2|E|Transformar residuos para fabricar nuevos productos.|Hacerlo con el aluminio ahorra mucha energía.|Separar papel, plástico y vidrio en casa.|¿Qué residuos de tu casa podrías aprovechar de nuevo?
+Mineral|2|G|Sustancia sólida natural que forma las rocas.|El diamante está formado solo por carbono.|La sal de mesa proviene de uno.|¿En qué objetos cotidianos hay minerales?
+Planeta|2|S|Cuerpo grande que gira alrededor de una estrella.|Venus gira en sentido contrario a casi todos los demás.|La Tierra es uno de ellos.|¿Qué hace especial a la Tierra entre los demás?
+Insecto|2|A|Animal de seis patas y cuerpo dividido en tres partes.|Es el grupo de animales con más especies.|Una mariposa es uno.|¿Por qué son importantes en la naturaleza?
+Raíz|2|P|Parte de la planta que la sujeta al suelo y absorbe agua.|Algunas, como la zanahoria, almacenan alimento.|La zanahoria que comes es una de ellas.|¿Qué pasaría si una planta perdiera esta parte?
+Experimento|2|X|Prueba que se hace para comprobar una idea.|Galileo hizo pruebas así para estudiar la caída de los cuerpos.|Mezclar bicarbonato y vinagre para ver burbujas.|¿Qué prueba sencilla te gustaría hacer?
+Hipótesis|2|X|Posible explicación que se pone a prueba.|Puede resultar falsa y aun así enseñarnos mucho.|"Creo que la planta crecerá más con luz."|¿Qué explicación propondrías para saber si el hielo se derrite más rápido al sol?
+Desierto|2|T|Lugar con muy pocas lluvias donde viven seres adaptados a la sequedad.|Hay desiertos fríos, como el de la Antártida.|Un cactus guarda agua en su tallo.|¿Cómo sobreviven los animales sin mucha agua?
+Terremoto|2|G|Movimiento brusco del suelo causado por el choque de placas de la corteza.|Los sismógrafos registran su fuerza.|El suelo tiembla durante unos segundos.|¿Cómo puedes protegerte durante uno?
+Estrella|2|S|Gran esfera de gas caliente que produce luz propia.|Muchas son más grandes que el Sol.|Las ves brillar en el cielo de noche.|¿En qué se diferencia de un planeta?
+Mariposa|2|A|Insecto que cambia de forma al crecer: huevo, oruga, crisálida y adulto.|Algunas saborean con las patas.|Una oruga se transforma en una de ellas.|¿Qué etapas tiene su vida?
+Esqueleto|2|H|Conjunto de huesos que sostiene y protege el cuerpo.|El hueso más pequeño del cuerpo está en el oído.|Tu cráneo protege el cerebro.|¿Cómo sería moverse sin él?
+Cerebro|2|H|Órgano que controla el cuerpo y nos permite pensar.|Usa cerca del 20 % de la energía del cuerpo.|Piensas y recuerdas gracias a él.|¿Qué hábitos ayudan a cuidarlo?
+Gravedad|2|M|Fuerza que atrae los objetos hacia el centro de la Tierra.|En la Luna es unas seis veces menor.|Una manzana cae del árbol al suelo.|¿Cómo saltarías en la Luna?
+Arcoíris|2|C|Franjas de colores que aparecen cuando la luz atraviesa gotas de agua.|En realidad es un círculo completo.|Aparece cuando sale el Sol después de la lluvia.|¿Qué necesitas para poder verlo?
+Temperatura|2|M|Medida de qué tan caliente o frío está algo.|La más baja posible es el cero absoluto, −273 °C.|Un termómetro mide si tienes fiebre.|¿Cómo cambia a lo largo del día?
+Biodiversidad|3|E|Variedad de seres vivos que existe en un lugar.|Las selvas tropicales tienen miles de especies en poco espacio.|Una selva con muchísimos tipos de plantas y animales.|¿Por qué conviene proteger la variedad de seres vivos?
+Metabolismo|3|B|Conjunto de reacciones químicas que transforman los alimentos en energía.|Funciona incluso mientras duermes.|Tu cuerpo obtiene energía del desayuno.|¿Por qué necesitas comer distintos alimentos?
+Evaporación|3|W|Paso del agua de líquido a vapor cuando recibe calor.|Gran parte del agua de las nubes viene de mares y ríos.|Un charco desaparece bajo el Sol.|¿Qué ocurre con el agua cuando recibe suficiente calor?
+Condensación|3|W|Paso del vapor de agua a gotitas líquidas al enfriarse.|Las nubes se forman gracias a este proceso.|Un vaso frío se llena de gotitas por fuera.|¿Por qué se empañan los espejos del baño?
+Microorganismo|3|B|Ser vivo tan pequeño que solo se ve con microscopio.|Muchos son útiles, como los que hacen el yogur.|Las bacterias del yogur.|¿Por qué lavarse las manos reduce los dañinos?
+Atmósfera|3|C|Capa de gases que rodea la Tierra.|Nos protege de parte de la radiación del Sol.|Respiras gracias a ella.|¿Qué pasaría si la Tierra no la tuviera?
+Herbívoro|3|A|Animal que se alimenta solo de plantas.|Las vacas tienen un estómago especial para digerir pasto.|Un conejo come hojas.|¿Qué sería de ellos sin plantas?
+Carnívoro|3|A|Animal que se alimenta de otros animales.|Ayudan a mantener el equilibrio de las poblaciones.|El león caza cebras.|¿Qué ocurriría si desaparecieran de un ecosistema?
+Contaminación|3|E|Presencia de sustancias dañinas en el aire, el agua o el suelo.|El plástico tarda cientos de años en degradarse.|El humo de los autos ensucia el aire.|¿Qué puedes hacer para generar menos?
+Polinización|3|P|Transporte del polen de una flor a otra para formar frutos y semillas.|Abejas, mariposas y el viento participan en ella.|Una abeja pasa de flor en flor.|¿Por qué sin ella habría menos frutas?
+Erupción|3|G|Salida de lava, gases y ceniza por un volcán.|Algunas han cambiado el clima del planeta por un tiempo.|Un volcán expulsa una gran nube de ceniza.|¿Qué señales pueden avisar de que ocurrirá una?
+Erosión|3|G|Desgaste y transporte de rocas y suelo por el agua, el viento o el hielo.|El Gran Cañón fue excavado por un río.|Un río arrastra tierra y forma un valle.|¿Cómo ayudan las raíces a frenarla?
+Eclipse|3|S|Momento en que un astro tapa la luz de otro.|En uno total de Sol, de día parece anochecer.|La Luna se pone entre el Sol y la Tierra.|¿Por qué no ocurre todos los meses?`;
+
+/* ============ UTILIDADES ============ */
+const norm=s=>s.toUpperCase().replace(/Ñ/g,"#").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/#/g,"Ñ");
+const WORDS=RAW.split("\n").map(l=>{const [w,lv,c,d,f,e,r]=l.split("|");return{w:w.toUpperCase(),n:norm(w),lv:+lv,c,d,f,e,r}});
+const $=id=>document.getElementById(id);
+const dayNum=()=>Math.floor((Date.now()-new Date().getTimezoneOffset()*6e4)/864e5);
+const rng=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+function shuffle(arr,r){for(let i=arr.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}return arr}
+// Palabra del día: baraja fija por ciclo; no se repite hasta usar todas
+function wordOfDay(d){const N=WORDS.length,cyc=Math.floor(d/N);return WORDS[shuffle([...WORDS.keys()],rng(2025+cyc))[d%N]]}
+
+const KEY="lpd_ciencias_v1",BASE=[100,80,60,40,20,10],COST={c:5,l:10,d:15},QUIZ_BONUS=20,MAX=6;
+const store={get(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}},set(o){try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}}};
+
+/* ============ ESTADO ============ */
+const today=dayNum();
+let saved=store.get();
+let stats=Object.assign({points:0,streak:0,best:0,last:-9,played:0,wins:0},saved.stats);
+if(stats.last<today-1&&stats.streak){stats.streak=0}   // pasó un día sin ganar: racha a cero
+let W,G,practice=false;
+let name=saved.name||"",sound=saved.sound!==false,welcome=false;
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* ============ SONIDOS (sintetizados con Web Audio, sin archivos) ============ */
+let AC=null;
+function ac(){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume()}catch(e){}return AC}
+function tone(f,t0,d,type="sine",v=.15,f2){
+  const c=ac();if(!c||!sound)return;
+  const o=c.createOscillator(),g=c.createGain(),t=c.currentTime+t0;
+  o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+d);
+  o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+d+.05)}
+const SFX={
+  key(){tone(520,0,.05,"triangle",.05)},
+  hint(){tone(880,0,.12,"sine",.1);tone(1175,.1,.18,"sine",.09)},
+  bad(){tone(220,0,.2,"sawtooth",.1,120);tone(160,.18,.28,"sawtooth",.1,90)},                 // error
+  ok(){[523,659,784,1047].forEach((f,i)=>tone(f,i*.11,.28,"triangle",.15));tone(1319,.45,.5,"sine",.1)}, // acierto
+  lose(){[392,349,330,262].forEach((f,i)=>tone(f,i*.24,.38,"square",.07))}};
+
+/* ============ PERSONALIDAD (humor) ============ */
+function persona(){
+  const n=G.guesses.length,h=Object.keys(G.hints).length;let t,j;
+  if(G.won){[t,j]=[
+    ["🔮 Adivino Cuántico","Acertaste a la primera. Suena a que leíste la mente del universo."],
+    ["🧠 Cerebrito de Laboratorio","Tan rápido que tu bata de laboratorio se quedó flotando."],
+    ["🔬 Científico Loco con Método","Un poco de caos, un poco de ciencia y mucho estilo."],
+    ["🐢 Tortuga Sabia","Sin prisa pero sin pausa: llegaste con calma y con la respuesta."],
+    ["😅 Explorador de Último Minuto","Dejaste el suspenso para el final, como en las buenas series."],
+    ["🧯 Héroe del Sexto Intento","Ganaste con el último aliento. Eso es pura emoción científica."]][n-1]}
+  else[t,j]=h>=2?["🐛 Oruga en Metamorfosis","Hoy no hubo suerte, pero ya casi te conviertes en mariposa del conocimiento."]
+    :["🌱 Semilla en Germinación","Todavía no brotas, pero con agua y Sol vas a florecer."];
+  if(G.won&&h===0)j+=" Y sin pistas: ¡todo mérito propio!";
+  if(h===3)j+=" Usaste las tres pistas: pediste ayuda como quien llama a emergencias 🆘.";
+  return{t,j}}
+const newGame=()=>({guesses:[],cur:"",hints:{},done:false,won:false,score:0,quiz:null,qopts:null});
+function persist(){if(!practice){saved.day=today;saved.g=G}saved.stats=stats;saved.name=name;saved.sound=sound;store.set(saved)}
+
+function startDaily(){practice=false;W=wordOfDay(today);G=(saved.day===today&&saved.g)?saved.g:newGame();persist();draw(false);if(G.done)setMsg("Ya jugaste hoy. ¡Vuelve mañana por una nueva palabra!")}
+function startPractice(){
+  closeModal();practice=true;let w;do{w=WORDS[Math.floor(Math.random()*WORDS.length)]}while(w===wordOfDay(today)&&WORDS.length>1);
+  W=w;G=newGame();draw(false);setMsg("Modo práctica: suma puntos, pero no cambia tu racha.")}
+
+/* ============ EVALUACIÓN ============ */
+function evaluate(g,t){const res=Array(t.length).fill("a"),rest={};
+  for(let i=0;i<t.length;i++){if(g[i]===t[i])res[i]="c";else rest[t[i]]=(rest[t[i]]||0)+1}
+  for(let i=0;i<t.length;i++){if(res[i]!=="c"&&rest[g[i]]>0){res[i]="p";rest[g[i]]--}}
+  return res}
+const SN={c:"correcta en su lugar",p:"correcta en otro lugar",a:"no está en la palabra"};
+
+/* ============ DIBUJO ============ */
+function draw(animateLast){
+  const n=W.n.length,b=$("board");b.style.setProperty("--n",n);b.innerHTML="";
+  for(let r=0;r<MAX;r++){
+    const row=document.createElement("div");row.className="row";row.style.setProperty("--n",n);row.id="r"+r;
+    const guess=G.guesses[r],typing=r===G.guesses.length&&!G.done?G.cur:"";
+    const ev=guess?evaluate(guess,W.n):null;
+    for(let i=0;i<n;i++){
+      const t=document.createElement("div");t.className="tile";t.style.setProperty("--i",i);
+      const ch=guess?guess[i]:typing[i]||"";t.textContent=ch;
+      if(ev){t.dataset.s=ev[i];t.setAttribute("aria-label",`${ch}, ${SN[ev[i]]}`);if(animateLast&&r===G.guesses.length-1)t.classList.add("flip")}
+      else if(ch){t.classList.add("filled")}
+      row.appendChild(t)}
+    b.appendChild(row)}
+  $("bCat").textContent="🧪 "+(practice?"Práctica":"Palabra de hoy");
+  $("bLvl").textContent=LVL[W.lv];$("bLen").textContent=n+" letras";
+  $("sTry").textContent=`${G.guesses.length}/${MAX}`;$("sPts").textContent=stats.points;$("sStreak").textContent=stats.streak;
+  $("sStreak").parentElement.setAttribute("aria-label",`Racha científica: ${stats.streak} días`);
+  drawKeys();drawHints();drawActions()}
+
+function drawKeys(){
+  const st={};G.guesses.forEach(g=>{const ev=evaluate(g,W.n);[...g].forEach((ch,i)=>{const o={a:0,p:1,c:2};if(!st[ch]||o[ev[i]]>o[st[ch]])st[ch]=ev[i]})});
+  const rows=["QWERTYUIOP","ASDFGHJKLÑ","ZXCVBNM"],kb=$("kb");kb.innerHTML="";
+  rows.forEach((r,ri)=>{const d=document.createElement("div");d.className="krow";
+    if(ri===2)d.appendChild(mkKey("ENTER","ENTER",true));
+    [...r].forEach(ch=>d.appendChild(mkKey(ch,ch,false,st[ch])));
+    if(ri===2)d.appendChild(mkKey("⌫","BACK",true));
+    kb.appendChild(d)})}
+function mkKey(label,val,wide,s){const b=document.createElement("button");b.className="key"+(wide?" wide":"");b.textContent=label;b.dataset.k=val;
+  if(s){b.dataset.s=s;b.setAttribute("aria-label",`${label}, ${SN[s]}`)}else if(val==="BACK")b.setAttribute("aria-label","Borrar");
+  return b}
+
+function hintText(t){
+  if(t==="c")return`${CATS[W.c][0]} Categoría: ${CATS[W.c][1]}`;
+  if(t==="l")return`🔤 Empieza con la letra «${W.n[0]}»`;
+  return"📖 Definición parcial: "+W.d.split(" ").slice(0,Math.ceil(W.d.split(" ").length/2)).join(" ")+" …"}
+function drawHints(){
+  document.querySelectorAll(".hbtn").forEach(b=>b.disabled=G.done);
+  $("hintbox").innerHTML=Object.keys(G.hints).map(t=>`<div>${hintText(t)}</div>`).join("")}
+function drawActions(){
+  const a=$("actions");a.innerHTML="";
+  if(G.done){a.append(mkBtn("📖 Ver ficha",()=>openModal()),mkBtn("🎲 Practicar otra palabra",startPractice,true))}
+  if(practice)a.append(mkBtn("↩ Palabra del día",startDaily,true))}
+function mkBtn(t,fn,alt){const b=document.createElement("button");b.className="btn"+(alt?" alt":"");b.textContent=t;b.onclick=fn;return b}
+let msgT;function setMsg(t){$("msg").textContent=t;clearTimeout(msgT);msgT=setTimeout(()=>{if(!G.done)$("msg").textContent=""},3500)}
+
+/* ============ ENTRADA ============ */
+function press(k){
+  if(G.done||$("modal").classList.contains("open"))return;
+  const n=W.n.length;
+  if(k==="BACK"){G.cur=G.cur.slice(0,-1);draw(false)}
+  else if(k==="ENTER"){submit()}
+  else if(/^[A-ZÑ]$/.test(k)&&G.cur.length<n){G.cur+=k;SFX.key();draw(false)}}
+function submit(){
+  const n=W.n.length;
+  if(G.cur.length<n){$("r"+G.guesses.length).classList.add("shake");tone(200,0,.12,"square",.08);setMsg(`Faltan letras: la palabra tiene ${n}.`);return}
+  G.guesses.push(G.cur);G.cur="";
+  const won=G.guesses[G.guesses.length-1]===W.n;
+  if(won||G.guesses.length>=MAX){G.done=true;G.won=won}
+  if(G.done)finish();
+  persist();draw(true);const res=won?"ok":G.done?"lose":"bad";setTimeout(()=>SFX[res](),n*220+250);
+  if(G.done){$("msg").textContent=G.won?`🎉 ¡Felicidades! La descubriste en ${G.guesses.length} ${G.guesses.length===1?"intento":"intentos"}.`:`La palabra era ${W.w}. ¡Cada intento es aprendizaje!`;
+    setTimeout(openModal,n*220+700)}}
+function finish(){
+  const cost=Object.keys(G.hints).reduce((s,k)=>s+COST[k],0);
+  G.score=G.won?Math.max(0,BASE[G.guesses.length-1]-cost):0;stats.points+=G.score;
+  if(!practice){stats.played++;
+    if(G.won){stats.wins++;stats.streak=(stats.last===today-1)?stats.streak+1:1;stats.last=today;stats.best=Math.max(stats.best,stats.streak)}
+    else stats.streak=0}
+  const others=shuffle(WORDS.filter(x=>x!==W).map(x=>x.d),Math.random).slice(0,3);
+  G.qopts=shuffle([W.d,...others],Math.random)}
+
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape")return closeModal();
+  if(e.target.tagName==="INPUT"){if(e.key==="Enter")$("goName").click();return}
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  if(e.key==="Enter"){if(e.target.tagName==="BUTTON"&&e.target.dataset.k!=="ENTER")return;e.preventDefault();press("ENTER")}
+  else if(e.key==="Backspace"){press("BACK")}
+  else if(/^[a-zñáéíóúü]$/i.test(e.key)){press(norm(e.key))}});
+$("kb").addEventListener("click",e=>{const b=e.target.closest("button");if(b)press(b.dataset.k)});
+document.querySelectorAll(".hbtn").forEach(b=>b.onclick=()=>{
+  if(G.done)return;const t=b.dataset.h;
+  if(!G.hints[t]){G.hints[t]=1;persist();SFX.hint()}drawHints();$("hintbox").scrollIntoView({block:"nearest"})});
+
+/* ============ FICHA EDUCATIVA Y RETO ============ */
+function openModal(){
+  const c=$("card"),cost=Object.keys(G.hints).reduce((s,k)=>s+COST[k],0);
+  const nm=esc(name||"científico"),p=persona();
+  const head=G.won?`🎉 ¡Felicidades, ${nm}! Lo lograste en ${G.guesses.length} ${G.guesses.length===1?"intento":"intentos"}.`:`No salió esta vez, ${nm}, ¡pero ahora conoces el concepto!`;
+  c.innerHTML=`<p class="win">${head}</p>
+  <h2 id="mTitle">${CATS[W.c][0]} ${W.w}</h2>
+  <p><small>${CATS[W.c][1]} · ${LVL[W.lv]}</small></p>
+  <h3>¿Qué significa?</h3><p>${W.d}</p>
+  <h3>Dato curioso</h3><p>${W.f}</p>
+  <h3>En la vida cotidiana</h3><p>${W.e}</p>
+  <h3>Para pensar</h3><p>${W.r}</p>
+  <p style="margin-top:10px"><b>⭐ ${G.won?`+${G.score} puntos`:"0 puntos"}</b>${G.won&&cost?` (incluye −${cost} por pistas)`:""} · 🔥 Racha científica: ${stats.streak} ${stats.streak===1?"día":"días"}</p>
+  <div class="persona"><small>${nm}, hoy eres…</small><b>${p.t}</b><span>${p.j}</span><span id="qjoke"></span></div>
+  <h3>🧠 Reto extra (+${QUIZ_BONUS} puntos)</h3>
+  <p>¿Cuál de estas descripciones corresponde a <b>${W.w}</b>?</p><div id="opts"></div><p id="qres" role="status"></p>
+  <div class="actions"><button class="btn" id="mClose">Cerrar</button><button class="btn alt" id="mPrac">🎲 Practicar otra palabra</button></div>`;
+  const box=$("opts");
+  G.qopts.forEach((d,i)=>{const b=document.createElement("button");b.className="opt";b.textContent=d;b.onclick=()=>answer(i);box.appendChild(b)});
+  if(G.quiz!==null)showQuiz();
+  $("mClose").onclick=closeModal;$("mPrac").onclick=startPractice;
+  $("modal").classList.add("open");$("mClose").focus()}
+function answer(i){
+  if(G.quiz!==null)return;
+  document.querySelectorAll(".opt")[i].dataset.picked=1;
+  G.quiz=G.qopts[i]===W.d;if(G.quiz){stats.points+=QUIZ_BONUS}(G.quiz?SFX.ok:SFX.bad)();
+  persist();showQuiz();$("sPts").textContent=stats.points}
+function showQuiz(){
+  document.querySelectorAll(".opt").forEach((b,i)=>{b.disabled=true;
+    const ok=G.qopts[i]===W.d;if(ok){b.classList.add("ok");b.textContent="✓ "+b.textContent}
+    else if(G.quiz===false&&b.dataset.picked){b.classList.add("bad")}});
+  $("qres").textContent=G.quiz?"🎉 ¡Excelente! Has aprendido algo nuevo de Ciencias Naturales.":"Casi. La respuesta correcta está marcada con ✓. ¡Sigue explorando!";
+  const q=$("qjoke");if(q)q.textContent=G.quiz?" Y encima acertaste el reto extra: oficialmente, nerd certificado 🤓.":" El reto extra te ganó esta vez 😜. La revancha es mañana."}
+function closeModal(){if(welcome)return;$("modal").classList.remove("open")}
+$("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});
+
+/* ============ NOMBRE Y SONIDO ============ */
+function refreshWho(){
+  $("whoName").textContent=name||"…";
+  $("mute").textContent=sound?"🔊 Sonido activado":"🔇 Sonido apagado";
+  $("mute").setAttribute("aria-pressed",String(sound))}
+function openWelcome(){
+  welcome=!name;
+  $("card").innerHTML=`<h2 id="mTitle">🌍 ${name?"Cambiar nombre":"¡Bienvenido, joven científico!"}</h2>
+  <p style="margin:8px 0">${name?"¿Cómo quieres que te llamemos?":"¿Cómo te llamas? Así podré felicitarte… y bromear con cariño sobre tu estilo de juego."}</p>
+  <label for="nameIn"><b>Tu nombre</b></label>
+  <input class="inp" id="nameIn" maxlength="16" autocomplete="off" value="${esc(name)}" placeholder="Ej.: Ana">
+  <div class="actions"><button class="btn" id="goName">¡Empezar a investigar!</button></div>`;
+  $("goName").onclick=()=>{
+    name=$("nameIn").value.trim()||"Explorador anónimo";welcome=false;
+    ac();persist();refreshWho();closeModal();SFX.ok()};
+  $("modal").classList.add("open");$("nameIn").focus();$("nameIn").select()}
+$("chName").onclick=openWelcome;
+$("mute").onclick=()=>{sound=!sound;persist();refreshWho();SFX.key()};
+
+startDaily();refreshWho();if(!name)openWelcome();
+</script>
+</body>
+</html>
